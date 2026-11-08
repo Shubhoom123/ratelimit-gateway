@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 2s
+          --health-timeout 2s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: gofmt
+        run: |
+          test -z "$(gofmt -l cmd internal)" || { gofmt -l cmd internal; echo "run gofmt -w"; exit 1; }
+      - name: vet
+        run: go vet ./...
+      - name: build
+        run: go build ./...
+      - name: test (race detector, Redis-backed)
+        run: |
+          set -o pipefail
+          go test -race -count=1 -v ./... 2>&1 | tee test.out
+      - name: fail if any test was skipped
+        # Redis-backed tests skip silently when Redis is unreachable; a green run
+        # with skips would hide the distributed-limiter tests.
+        run: |
+          if grep -q -- '--- SKIP' test.out; then
+            echo "::error::Some tests were skipped (Redis not reachable?)"
+            grep -- '--- SKIP' test.out
+            exit 1
+          fi
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t ratelimit-gateway:ci .
+      - name: Validate compose file
+        run: docker compose -f deploy/compose/docker-compose.yml config -q
