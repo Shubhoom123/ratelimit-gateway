@@ -1,0 +1,8 @@
+S1 baseline throughput and latency (no limiting, backend 5ms)
+  baseline_1000: 1000 rps, allowed 1000/s, p99 11.2ms codes {'200': 10000}
+  baseline_2000: 1999 rps, allowed 1999/s, p99 15.1ms codes {'200': 20000}
+S2 limiter accuracy: one identity, 2 gateway instances, 600 rps offered vs 200/s limit, 10s
+  acc_tb: 600 rps, allowed 220/s, p99 9.8ms codes {'200': 2199, '429': 3801}
+  acc_swl: 600 rps, allowed 200/s, p99 8.5ms codes {'200': 2000, '429': 4000}
+  acc_swc: 600 rps, allowed 208/s, p99 8.9ms codes {'200': 2076, '429': 3924}
+S3 local fast path: same traffic as S2 token bucket

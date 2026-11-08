@@ -1,0 +1,169 @@
+{
+ "redis": {
+  "addr": "127.0.0.1:6390",
+  "prefix": "lt1",
+  "pool_size": 128,
+  "timeout": "25ms",
+  "breaker": {
+   "window": 20,
+   "min_requests": 10,
+   "failure_ratio": 0.5,
+   "open_for": "1s",
+   "probes": 3
+  }
+ },
+ "defaults": {
+  "algorithm": "token_bucket",
+  "limit": 10000000,
+  "window": "1s",
+  "burst": 10000000
+ },
+ "on_redis_error": "local_fallback",
+ "fallback_divisor": 2,
+ "fast_path": {
+  "enabled": true
+ },
+ "backends": {
+  "svc": {
+   "url": "http://127.0.0.1:9001",
+   "max_concurrent": 512,
+   "queue_wait": "25ms",
+   "breaker": {
+    "window": 20,
+    "min_requests": 1000000,
+    "failure_ratio": 1.0,
+    "open_for": "1s",
+    "probes": 1
+   }
+  },
+  "protected": {
+   "url": "http://127.0.0.1:9001",
+   "max_concurrent": 50,
+   "queue_wait": "10ms",
+   "breaker": {
+    "window": 20,
+    "min_requests": 20,
+    "failure_ratio": 0.5,
+    "open_for": "2s",
+    "probes": 3
+   }
+  },
+  "unprotected": {
+   "url": "http://127.0.0.1:9001",
+   "max_concurrent": 100000,
+   "queue_wait": "10s",
+   "breaker": {
+    "window": 20,
+    "min_requests": 1000000,
+    "failure_ratio": 1.0,
+    "open_for": "1s",
+    "probes": 1
+   }
+  }
+ },
+ "routes": [
+  {
+   "name": "api",
+   "prefix": "/api",
+   "backend": "svc"
+  },
+  {
+   "name": "tb",
+   "prefix": "/tb",
+   "backend": "svc",
+   "limit": {
+    "algorithm": "token_bucket",
+    "limit": 200,
+    "window": "1s",
+    "burst": 200
+   }
+  },
+  {
+   "name": "tbf",
+   "prefix": "/tbf",
+   "backend": "svc",
+   "limit": {
+    "algorithm": "token_bucket",
+    "limit": 200,
+    "window": "1s",
+    "burst": 200
+   }
+  },
+  {
+   "name": "swl",
+   "prefix": "/swl",
+   "backend": "svc",
+   "limit": {
+    "algorithm": "sliding_window_log",
+    "limit": 200,
+    "window": "1s",
+    "burst": 200
+   }
+  },
+  {
+   "name": "swc",
+   "prefix": "/swc",
+   "backend": "svc",
+   "limit": {
+    "algorithm": "sliding_window_counter",
+    "limit": 200,
+    "window": "1s",
+    "burst": 200
+   }
+  },
+  {
+   "name": "prot",
+   "prefix": "/prot",
+   "backend": "protected",
+   "timeout": "250ms"
+  },
+  {
+   "name": "unprot",
+   "prefix": "/unprot",
+   "backend": "unprotected",
+   "timeout": "5s"
+  },
+  {
+   "name": "dead",
+   "prefix": "/dead",
+   "backend": "protected",
+   "timeout": "250ms"
+  },
+  {
+   "name": "rd_local",
+   "prefix": "/rd_local",
+   "backend": "svc",
+   "limit": {
+    "algorithm": "token_bucket",
+    "limit": 500,
+    "window": "1s",
+    "burst": 500
+   },
+   "on_redis_error": "local_fallback"
+  },
+  {
+   "name": "rd_open",
+   "prefix": "/rd_open",
+   "backend": "svc",
+   "limit": {
+    "algorithm": "token_bucket",
+    "limit": 500,
+    "window": "1s",
+    "burst": 500
+   },
+   "on_redis_error": "fail_open"
+  },
+  {
+   "name": "rd_closed",
+   "prefix": "/rd_closed",
+   "backend": "svc",
+   "limit": {
+    "algorithm": "token_bucket",
+    "limit": 500,
+    "window": "1s",
+    "burst": 500
+   },
+   "on_redis_error": "fail_closed"
+  }
+ ]
+}

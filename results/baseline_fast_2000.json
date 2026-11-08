@@ -1,0 +1,20 @@
+{
+ "name": "baseline_fast_2000",
+ "target_rps": 2000,
+ "duration_s": 10.006078806,
+ "sent": 20000,
+ "completed": 20000,
+ "dropped_client_side": 0,
+ "achieved_rps": 1998.784977388674,
+ "status_codes": {
+  "200": 20000
+ },
+ "allowed_rps": 1998.784977388674,
+ "p50_ms": 6.832585,
+ "p95_ms": 10.450611,
+ "p99_ms": 15.014824,
+ "max_ms": 44.382402,
+ "ok_p99_ms": 15.014824,
+ "shed_p99_ms": 0,
+ "redis_calls": 629.0
+}

@@ -1,0 +1,21 @@
+{
+ "name": "acc_swl",
+ "target_rps": 600,
+ "duration_s": 9.999066029,
+ "sent": 6000,
+ "completed": 6000,
+ "dropped_client_side": 0,
+ "achieved_rps": 600.0560434942998,
+ "status_codes": {
+  "200": 2000,
+  "429": 4000
+ },
+ "allowed_rps": 200.0186811647666,
+ "p50_ms": 1.431144,
+ "p95_ms": 7.609549,
+ "p99_ms": 8.539894,
+ "max_ms": 18.232794,
+ "ok_p99_ms": 10.194985,
+ "shed_p99_ms": 2.593281,
+ "redis_calls": 6000.0
+}

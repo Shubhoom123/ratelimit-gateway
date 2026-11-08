@@ -1,0 +1,21 @@
+{
+ "name": "acc_tb",
+ "target_rps": 600,
+ "duration_s": 10.002630509,
+ "sent": 6000,
+ "completed": 6000,
+ "dropped_client_side": 0,
+ "achieved_rps": 599.8422109665473,
+ "status_codes": {
+  "200": 2199,
+  "429": 3801
+ },
+ "allowed_rps": 219.84217031923959,
+ "p50_ms": 1.568795,
+ "p95_ms": 8.180075,
+ "p99_ms": 9.78306,
+ "max_ms": 35.624936,
+ "ok_p99_ms": 11.830527,
+ "shed_p99_ms": 3.348385,
+ "redis_calls": 6000.0
+}

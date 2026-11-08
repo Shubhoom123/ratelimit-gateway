@@ -1,0 +1,21 @@
+# Binaries
+bin/
+*.exe
+*.test
+*.out
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+crash.log
+
+# Env / secrets
+.env
+*.pem
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store

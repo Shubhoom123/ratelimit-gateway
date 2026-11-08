@@ -1,0 +1,20 @@
+{
+ "name": "baseline_1000",
+ "target_rps": 1000,
+ "duration_s": 10.004922179,
+ "sent": 10000,
+ "completed": 10000,
+ "dropped_client_side": 0,
+ "achieved_rps": 999.508024259266,
+ "status_codes": {
+  "200": 10000
+ },
+ "allowed_rps": 999.508024259266,
+ "p50_ms": 6.907422,
+ "p95_ms": 8.620937,
+ "p99_ms": 11.158145,
+ "max_ms": 18.888109,
+ "ok_p99_ms": 11.158145,
+ "shed_p99_ms": 0,
+ "redis_calls": 10000.0
+}
