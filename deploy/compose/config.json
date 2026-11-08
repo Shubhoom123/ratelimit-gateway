@@ -1,0 +1,43 @@
+{
+  "redis": {
+    "addr": "redis:6379",
+    "prefix": "rl",
+    "pool_size": 64,
+    "timeout": "25ms",
+    "breaker": { "window": 20, "min_requests": 10, "failure_ratio": 0.5, "open_for": "1s", "probes": 3 }
+  },
+  "defaults": { "algorithm": "token_bucket", "limit": 1000, "window": "1s", "burst": 1000 },
+  "on_redis_error": "local_fallback",
+  "fallback_divisor": 2,
+  "fast_path": { "enabled": true },
+  "backends": {
+    "svc": {
+      "url": "http://backend1:9001",
+      "max_concurrent": 256,
+      "queue_wait": "25ms",
+      "breaker": { "window": 20, "min_requests": 20, "failure_ratio": 0.5, "open_for": "2s", "probes": 3 }
+    },
+    "flaky": {
+      "url": "http://backend2:9001",
+      "max_concurrent": 50,
+      "queue_wait": "10ms",
+      "breaker": { "window": 20, "min_requests": 20, "failure_ratio": 0.5, "open_for": "2s", "probes": 3 }
+    }
+  },
+  "routes": [
+    { "name": "api", "prefix": "/api", "backend": "svc" },
+    {
+      "name": "limited",
+      "prefix": "/limited",
+      "backend": "svc",
+      "limit": { "algorithm": "token_bucket", "limit": 100, "window": "1s", "burst": 100 }
+    },
+    {
+      "name": "strict",
+      "prefix": "/strict",
+      "backend": "svc",
+      "limit": { "algorithm": "sliding_window_counter", "limit": 100, "window": "1s", "burst": 100 }
+    },
+    { "name": "flaky", "prefix": "/flaky", "backend": "flaky", "timeout": "250ms" }
+  ]
+}

@@ -1,0 +1,55 @@
+# Local stack: 2 gateways sharing one Redis, 2 controllable backends,
+# Prometheus and Grafana. Gateways: :18081 and :18082. Override any host port via env
+# (e.g. GATEWAY1_PORT=28081 GRAFANA_PORT=3001).
+#   docker compose -f deploy/compose/docker-compose.yml up --build
+name: ratelimit-gateway
+
+x-gateway: &gateway
+  build: { context: ../.., dockerfile: Dockerfile }
+  command: ["-config", "/etc/gateway/config.json"]
+  volumes: ["./config.json:/etc/gateway/config.json:ro"]
+  depends_on: { redis: { condition: service_healthy }, backend1: { condition: service_started }, backend2: { condition: service_started } }
+
+services:
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports: ["${REDIS_PORT:-6379}:6379"]
+    healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 2s, timeout: 2s, retries: 10 }
+
+  backend1:
+    build: { context: ../.., dockerfile: Dockerfile }
+    entrypoint: ["/usr/local/bin/backend"]
+    command: ["-listen", ":9001", "-name", "backend1"]
+    ports: ["${BACKEND1_PORT:-9001}:9001"]
+
+  backend2:
+    build: { context: ../.., dockerfile: Dockerfile }
+    entrypoint: ["/usr/local/bin/backend"]
+    command: ["-listen", ":9001", "-name", "backend2"]
+    ports: ["${BACKEND2_PORT:-9002}:9001"]
+
+  gateway1:
+    <<: *gateway
+    ports: ["${GATEWAY1_PORT:-18081}:8080", "${GATEWAY1_ADMIN_PORT:-19091}:9090"]
+
+  gateway2:
+    <<: *gateway
+    ports: ["${GATEWAY2_PORT:-18082}:8080", "${GATEWAY2_ADMIN_PORT:-19092}:9090"]
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=2d"]
+    volumes: ["./prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
+    ports: ["${PROMETHEUS_PORT:-9099}:9090"]
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports: ["${GRAFANA_PORT:-3000}:3000"]
+    depends_on: [prometheus]
