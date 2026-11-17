@@ -4,13 +4,6 @@ bin/
 *.test
 *.out
 
-# Terraform
-.terraform/
-*.tfstate
-*.tfstate.*
-*.tfvars
-crash.log
-
 # Env / secrets
 .env
 *.pem
