@@ -1,0 +1,61 @@
+# Alert rules for the gateway. Open http://localhost:9099/alerts to see them.
+# State 0 = closed, 1 = open, 2 = half-open for gateway_breaker_state.
+# Breaker alerts use max_over_time(...) >= 1 because a failing dependency cycles
+# open <-> half-open every open_for (1-2s), so "== 1" would almost never hold for the "for:" window.
+groups:
+  - name: gateway
+    rules:
+      - alert: GatewayDown
+        expr: up{job="gateway"} == 0
+        for: 30s
+        labels: { severity: critical }
+        annotations:
+          summary: "Gateway instance {{ $labels.instance }} is not responding to scrapes"
+
+      - alert: RedisBreakerOpen
+        expr: max_over_time(gateway_breaker_state{kind="redis"}[30s]) >= 1
+        for: 15s
+        labels: { severity: critical }
+        annotations:
+          summary: "Redis circuit breaker is open on {{ $labels.instance }}"
+          description: "Limiter calls are failing. Each route is applying its on_redis_error policy (fail_open, fail_closed or local_fallback). See docs/adr/0004."
+
+      - alert: RedisErrors
+        expr: sum by (instance) (rate(gateway_redis_errors_total[1m])) > 1
+        for: 30s
+        labels: { severity: warning }
+        annotations:
+          summary: "Failed Redis calls on {{ $labels.instance }}: {{ $value | humanize }}/s"
+
+      - alert: BackendBreakerOpen
+        expr: max_over_time(gateway_breaker_state{kind="backend"}[30s]) >= 1
+        for: 15s
+        labels: { severity: critical }
+        annotations:
+          summary: "Breaker for backend {{ $labels.name }} is open on {{ $labels.instance }}"
+          description: "Requests to this backend are being rejected with 503 (breaker_open) until it recovers."
+
+      - alert: HighLoadShedding
+        expr: |
+          sum by (instance) (rate(gateway_shed_total[1m]))
+            / clamp_min(sum by (instance) (rate(gateway_requests_total[1m])), 1) > 0.10
+        for: 1m
+        labels: { severity: warning }
+        annotations:
+          summary: "More than 10% of requests are being shed on {{ $labels.instance }}"
+          description: "Check the 'Load shed by reason' panel: breaker_open, bulkhead_full, gateway_overloaded or limiter_unavailable."
+
+      - alert: HighP99Latency
+        expr: |
+          histogram_quantile(0.99,
+            sum by (le, route) (rate(gateway_request_duration_seconds_bucket[1m]))) > 0.5
+        for: 2m
+        labels: { severity: warning }
+        annotations:
+          summary: "p99 latency above 500 ms on route {{ $labels.route }}"
+
+      - alert: ConfigReloadRejected
+        expr: increase(gateway_config_reloads_total{result="rejected"}[5m]) > 0
+        labels: { severity: warning }
+        annotations:
+          summary: "A config reload was rejected on {{ $labels.instance }}; the previous config is still live"

@@ -20,11 +20,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/shubhamkhalkho/ratelimit-gateway/internal/config"
-	"github.com/shubhamkhalkho/ratelimit-gateway/internal/limiter"
-	"github.com/shubhamkhalkho/ratelimit-gateway/internal/metrics"
-	"github.com/shubhamkhalkho/ratelimit-gateway/internal/redisc"
-	"github.com/shubhamkhalkho/ratelimit-gateway/internal/resilience"
+	"github.com/Shubhoom123/ratelimit-gateway/internal/config"
+	"github.com/Shubhoom123/ratelimit-gateway/internal/limiter"
+	"github.com/Shubhoom123/ratelimit-gateway/internal/metrics"
+	"github.com/Shubhoom123/ratelimit-gateway/internal/redisc"
+	"github.com/Shubhoom123/ratelimit-gateway/internal/resilience"
 )
 
 // Gateway is the reverse proxy.

@@ -1,6 +1,6 @@
 package limiter
 
-import "github.com/shubhamkhalkho/ratelimit-gateway/internal/redisc"
+import "github.com/Shubhoom123/ratelimit-gateway/internal/redisc"
 
 // All scripts read time from Redis (TIME) instead of trusting the caller.
 // Gateway instances have independent clocks, so using the caller's clock would

@@ -12,9 +12,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/shubhamkhalkho/ratelimit-gateway/internal/config"
-	"github.com/shubhamkhalkho/ratelimit-gateway/internal/gateway"
-	"github.com/shubhamkhalkho/ratelimit-gateway/internal/metrics"
+	"github.com/Shubhoom123/ratelimit-gateway/internal/config"
+	"github.com/Shubhoom123/ratelimit-gateway/internal/gateway"
+	"github.com/Shubhoom123/ratelimit-gateway/internal/metrics"
 )
 
 func env(k, def string) string {

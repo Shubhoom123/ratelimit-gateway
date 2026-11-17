@@ -11,7 +11,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/shubhamkhalkho/ratelimit-gateway/internal/redisc"
+	"github.com/Shubhoom123/ratelimit-gateway/internal/redisc"
 )
 
 // Redis enforces limits through atomic Lua scripts, so any number of gateway

@@ -40,7 +40,7 @@ services:
   prometheus:
     image: prom/prometheus:v2.55.1
     command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=2d"]
-    volumes: ["./prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
+    volumes: ["./prometheus.yml:/etc/prometheus/prometheus.yml:ro", "./alerts.yml:/etc/prometheus/alerts.yml:ro"]
     ports: ["${PROMETHEUS_PORT:-9099}:9090"]
 
   grafana:

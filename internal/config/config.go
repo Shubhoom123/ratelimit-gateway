@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shubhamkhalkho/ratelimit-gateway/internal/limiter"
+	"github.com/Shubhoom123/ratelimit-gateway/internal/limiter"
 )
 
 // Duration is a time.Duration that reads as a string ("250ms") in JSON.

@@ -44,6 +44,10 @@ Measured with `cmd/algobench` (100 requests per 1s rule; full tables in [docs/al
 
 Why they differ: a token bucket lets a full bucket drain at once and then refill, so it permits a burst of up to capacity plus one window's refill. The sliding-window log stores a timestamp per request, so it is exact but costs memory proportional to the limit. The sliding-window counter blends the previous and current window counts, which gives near-log accuracy at near-bucket memory.
 
+## Design decisions
+
+Short records of why it works the way it does, each tied to code and measurements: [docs/adr](docs/adr/README.md). They cover why a token bucket allows bursts and a sliding-window counter does not, how races across instances are avoided (atomic Lua and a single Redis clock), the fail-open vs fail-closed trade-off, and what happens to latency under overload.
+
 ## Quick start
 
 Requires Go 1.24 and Docker.

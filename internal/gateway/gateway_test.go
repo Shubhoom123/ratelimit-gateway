@@ -16,9 +16,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shubhamkhalkho/ratelimit-gateway/internal/config"
-	"github.com/shubhamkhalkho/ratelimit-gateway/internal/metrics"
-	"github.com/shubhamkhalkho/ratelimit-gateway/internal/redisc"
+	"github.com/Shubhoom123/ratelimit-gateway/internal/config"
+	"github.com/Shubhoom123/ratelimit-gateway/internal/metrics"
+	"github.com/Shubhoom123/ratelimit-gateway/internal/redisc"
 )
 
 func redisAddr(t testing.TB) string {

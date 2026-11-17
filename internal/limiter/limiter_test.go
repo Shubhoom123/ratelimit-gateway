@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shubhamkhalkho/ratelimit-gateway/internal/redisc"
+	"github.com/Shubhoom123/ratelimit-gateway/internal/redisc"
 )
 
 type fakeClock struct {
