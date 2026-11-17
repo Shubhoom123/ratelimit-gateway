@@ -2,7 +2,7 @@
 
 A reverse proxy / API gateway in Go that sits in front of backend services. It enforces rate limits that stay correct across multiple gateway instances, sheds load instead of collapsing when a backend slows down, and reloads its config without a restart. The gateway itself depends only on the Go standard library.
 
-> **Status:** work in progress. The gateway, limiters, resilience layer, config reload, local Docker stack, and tests are done. Terraform/AWS deployment and the AWS load-test report are not started. See [Roadmap](#roadmap).
+> **Status:** the gateway, limiters, resilience layer, config reload, local Docker stack, tests, CI and local load tests are done. It runs entirely locally and costs nothing. See [Roadmap](#roadmap).
 
 ## Architecture
 
@@ -85,27 +85,34 @@ CI (`.github/workflows/ci.yml`) runs gofmt, vet, build, and the full test suite 
 
 ## Local load-test results
 
-These come from `scripts/loadtest_local.py`, with the load generator, Redis, backend and two gateways all sharing one 2-CPU machine. Treat them as a floor for the code and as evidence of *behavior*, not as a capacity claim. Raw data is in [`results/`](results/). **AWS results are pending.**
+Two complete runs of `scripts/loadtest_local.py` on one 2-CPU machine, with the load generator, Redis, backend and both gateways sharing those CPUs. Treat them as a floor for the code and as evidence of *behavior*, not as a capacity claim. Full tables for both runs are in [docs/loadtest-report.md](docs/loadtest-report.md); raw data is in [`results/`](results/). Everything runs locally and costs nothing.
 
-**Limiter accuracy** (600 req/s offered to one identity across 2 gateways, limit 200/s, 10s):
+**Limiter accuracy** (600 req/s offered to one identity across 2 gateways, limit 200/s, 10 s):
 
-| Algorithm | Allowed/s | Notes |
+| Algorithm | Allowed/s (run 1, run 2) | Notes |
 |---|---|---|
-| token bucket | 220 | ideal is 200 plus 200 burst over 10s = 220 |
-| sliding-window log | 200 | exact |
-| sliding-window counter | 208 | about 4% over |
+| token bucket | 220, 220 | exactly 200 burst plus 200/s refill over 10 s |
+| sliding-window log | 200, 200 | exact |
+| sliding-window counter | 206, 202 | about 1-3% over |
 
-**Latency and throughput (no limiting, 5 ms backend):** 1000 req/s gave p50 6.9 ms and p99 11.2 ms. 2000 req/s gave p50 7.0 ms and p99 15.1 ms, with 0 errors in both runs.
+**Baseline (no limiting, 5 ms backend):** 1000 req/s gave p50 6.6-6.7 ms and p99 7.9-8.4 ms. 2000 req/s gave p50 6.4-6.6 ms and p99 9.1-10.6 ms. Zero errors in every run.
 
-**Fast path:** the same 2000 req/s run used 629 Redis calls instead of 20,000, with the same p99 (15.0 ms vs 15.1 ms). The cost is some extra over-admission, which is the accuracy-vs-round-trips trade-off.
+**Fast path:** at 2000 req/s it used 474-477 Redis calls instead of 20,000 with the same latency. Under heavy overload it saves much less (5,273-5,501 of 6,000 calls), because most requests there are denials that still have to be checked.
 
-**Slow backend (800 req/s):** without protection, every request was served, but p99 rose to 409 ms. With a bulkhead, deadline and breaker, p99 for served requests stayed at 12 ms and the gateway shed the excess with 503/504 (about 45% of requests at 800 req/s offered).
+**Slow backend** (latency jumps from 5 ms to 400 ms mid-run, 800 req/s for 20 s). Protection trades throughput for latency, so read both rows:
 
-**Killed backend (800 req/s):** 6402 fast 503s (breaker open) and only 26 502s, instead of requests hanging.
+| | Served successfully | Latency of served requests (p99) | Failed or shed |
+|---|---|---|---|
+| No protection | 14,496 (90.6%) | about 4,856 ms | 9.4% (client timeouts and 504s) |
+| Bulkhead + deadline + breaker | 8,770 (54.8%) | 10-11 ms | 44.3% shed with 503, 0.9% 504 |
 
-**Redis down** (1500 req/s against a 500/s route, Redis down for part of the run): `fail_closed` rejected with 503, `local_fallback` kept enforcing a per-instance share, and `fail_open` admitted the most traffic. The policy is chosen per route, so a payment route can fail closed while a read route fails open.
+Without protection most requests succeed, but the queue behind the slow backend grows until requests hit the 5 s timeout. With protection the gateway answers 55% quickly and rejects the rest immediately.
 
-Limitations: single machine, short runs (10 s), one trial each, no confidence intervals. The Redis-down figures mix periods with Redis up and down, so compare policies qualitatively, not by exact percentages.
+**Killed backend** (down for 7 s, 800 req/s): about 40% fast 503s from the open breaker and only 0.3-0.4% 502s, with p99 of 10-13 ms, instead of requests hanging.
+
+**Redis down for 7 s** (1500 req/s against a 500/s route): `fail_open` admitted about 900/s, `local_fallback` 575-625/s, and `fail_closed` 324-374/s. The ordering repeated, but exact numbers did not, because outage timing against the Redis breaker shifts the counts. The policy is chosen per route, so a payment route can fail closed while a read route fails open.
+
+Limitations: one machine, 10-20 s runs, two trials, no confidence intervals, and injected backend latency. There is no cloud network between gateway and Redis.
 
 ## Configuration
 
@@ -133,6 +140,9 @@ deploy/compose       local stack (Compose, Prometheus, Grafana)
 - [x] Dynamic config reload
 - [x] Local Docker stack, Prometheus, Grafana dashboard
 - [x] Unit and integration tests, CI
-- [ ] Terraform: VPC, ECS Fargate, ALB, ElastiCache, CloudWatch
-- [ ] CD: plan on PR, apply on merge (OIDC)
-- [ ] k6 load tests on AWS and a published report
+- [x] Reproducible local load tests (two clean runs)
+- [ ] Prometheus alert rules
+- [ ] k6 load-test scripts
+- [ ] Design write-ups (architecture decision records)
+
+Cloud deployment is out of scope on purpose: the project runs entirely locally and costs nothing to run or test.

@@ -1,7 +1,7 @@
 {
  "redis": {
   "addr": "127.0.0.1:6390",
-  "prefix": "lt1",
+  "prefix": "lt2",
   "pool_size": 128,
   "timeout": "25ms",
   "breaker": {
@@ -21,7 +21,7 @@
  "on_redis_error": "local_fallback",
  "fallback_divisor": 2,
  "fast_path": {
-  "enabled": true
+  "enabled": false
  },
  "backends": {
   "svc": {

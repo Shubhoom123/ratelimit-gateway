@@ -1,20 +1,20 @@
 {
  "name": "baseline_2000",
  "target_rps": 2000,
- "duration_s": 10.007349652,
+ "duration_s": 10.006681203,
  "sent": 20000,
  "completed": 20000,
  "dropped_client_side": 0,
- "achieved_rps": 1998.5311491542557,
+ "achieved_rps": 1998.6646515733914,
  "status_codes": {
   "200": 20000
  },
- "allowed_rps": 1998.5311491542557,
- "p50_ms": 6.968177,
- "p95_ms": 10.917888,
- "p99_ms": 15.09263,
- "max_ms": 34.493526,
- "ok_p99_ms": 15.09263,
+ "allowed_rps": 1998.6646515733914,
+ "p50_ms": 6.553234,
+ "p95_ms": 8.142197,
+ "p99_ms": 10.618306,
+ "max_ms": 15.648915,
+ "ok_p99_ms": 10.618306,
  "shed_p99_ms": 0,
  "redis_calls": 20000.0
 }

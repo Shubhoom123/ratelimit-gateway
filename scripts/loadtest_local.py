@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Local load-test harness: starts Redis, a controllable backend and two gateway
 instances, runs the scenarios with cmd/loadgen, and writes results/*.json plus
-docs/loadtest-report.md.
+results/summary.json.
 
 Everything shares this machine's CPUs (including the load generator), so the
-absolute numbers are a floor for the code, not a capacity claim. The AWS run
-(k6 scripts in loadtest/k6) is the one to quote for capacity.
+absolute numbers are a floor for the code, not a capacity claim. Each run takes
+about 4 minutes. A comparison of two runs is in docs/loadtest-report.md.
 
     make build && python3 scripts/loadtest_local.py
 """
